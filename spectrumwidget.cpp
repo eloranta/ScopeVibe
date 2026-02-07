@@ -40,21 +40,23 @@ void SpectrumWidget::paintEvent(QPaintEvent *event)
     }
 
     const float maxValue = *std::max_element(m_bins.begin(), m_bins.end());
-    const float scale = (maxValue > 0.0f) ? (static_cast<float>(h - 4) / maxValue) : 1.0f;
+    const float scale = (maxValue > 0.0f) ? (static_cast<float>(h - 6) / maxValue) : 1.0f;
 
     const int count = m_bins.size();
-    const float barWidth = static_cast<float>(w) / static_cast<float>(count);
-
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(0, 140, 220));
+    QVector<QPointF> points;
+    points.reserve(count);
 
     for (int i = 0; i < count; ++i) {
         const float magnitude = m_bins[i];
-        const float barHeight = magnitude * scale;
-        const float x = i * barWidth;
-        const float y = h - barHeight;
-        painter.drawRect(QRectF(x, y, barWidth * 0.9f, barHeight));
+        const float x = (count > 1)
+            ? (static_cast<float>(i) / static_cast<float>(count - 1)) * static_cast<float>(w - 1)
+            : 0.0f;
+        const float y = static_cast<float>(h - 2) - magnitude * scale;
+        points.push_back(QPointF(x, y));
     }
+
+    painter.setPen(QPen(QColor(0, 140, 220), 1.4));
+    painter.drawPolyline(points.constData(), points.size());
 }
 
 void SpectrumWidget::computeSpectrum()

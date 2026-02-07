@@ -19,6 +19,8 @@ set(PROJECT_SOURCES
         mainwindow.ui
         scopewidget.cpp
         scopewidget.h
+        spectrumwidget.cpp
+        spectrumwidget.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

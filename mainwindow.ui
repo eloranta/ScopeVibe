@@ -62,6 +62,9 @@
     <item>
      <widget class="ScopeWidget" name="scopeWidget"/>
     </item>
+    <item>
+     <widget class="SpectrumWidget" name="spectrumWidget"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -81,6 +84,11 @@
    <class>ScopeWidget</class>
    <extends>QWidget</extends>
    <header>scopewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SpectrumWidget</class>
+   <extends>QWidget</extends>
+   <header>spectrumwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

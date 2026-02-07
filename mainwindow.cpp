@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 
 #include "scopewidget.h"
+#include "spectrumwidget.h"
 
 #include <QStatusBar>
 
@@ -41,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->scopeWidget, &ScopeWidget::statusChanged, this, [this](const QString &text) {
         statusBar()->showMessage(text);
     });
+
+    connect(ui->scopeWidget, &ScopeWidget::frameReady, ui->spectrumWidget, &SpectrumWidget::setSamples);
 
     if (sources.isEmpty()) {
         ui->startButton->setEnabled(false);

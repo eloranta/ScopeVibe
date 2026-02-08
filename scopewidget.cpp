@@ -167,10 +167,11 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
         return;
     }
 
-    QVector<QPointF> points;
-    points.reserve(m_wave.size());
     const float peak = std::max(0.02f, m_displayPeak);
     const float yScale = (static_cast<float>(h) * 0.45f) / peak;
+
+    QVector<QPointF> points;
+    points.reserve(m_wave.size());
 
     for (int i = 0; i < m_wave.size(); ++i) {
         const float x = static_cast<float>(i) / static_cast<float>(m_wave.size() - 1) * static_cast<float>(w - 1);
@@ -347,20 +348,25 @@ bool ScopeWidget::tryFormat(int sampleRate, int channels, int bitsPerSample)
 
 void ScopeWidget::appendSamples(const QVector<float> &samples)
 {
+    QVector<float> absSamples;
+    absSamples.reserve(samples.size());
+
     float maxAbs = 0.0f;
     for (float sample : samples) {
-        maxAbs = std::max(maxAbs, std::fabs(sample));
+        const float value = std::fabs(sample);
+        absSamples.push_back(value);
+        maxAbs = std::max(maxAbs, value);
     }
     m_displayPeak = std::max(maxAbs, m_displayPeak * 0.95f);
 
-    if (samples.size() >= m_maxSamples) {
-        m_wave = samples.mid(samples.size() - m_maxSamples);
+    if (absSamples.size() >= m_maxSamples) {
+        m_wave = absSamples.mid(absSamples.size() - m_maxSamples);
         return;
     }
 
-    const int overflow = (m_wave.size() + samples.size()) - m_maxSamples;
+    const int overflow = (m_wave.size() + absSamples.size()) - m_maxSamples;
     if (overflow > 0) {
         m_wave.remove(0, overflow);
     }
-    m_wave += samples;
+    m_wave += absSamples;
 }

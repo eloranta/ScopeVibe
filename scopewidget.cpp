@@ -181,6 +181,20 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
 
     painter.setPen(QPen(QColor(0, 200, 120), 1.2));
     painter.drawPolyline(points.constData(), points.size());
+
+    if (m_format.nSamplesPerSec > 0) {
+        const float durationSec = static_cast<float>(m_wave.size()) / static_cast<float>(m_format.nSamplesPerSec);
+        const int ticks = 5;
+        painter.setPen(QPen(QColor(150, 150, 170), 1.0));
+        painter.setFont(QFont(painter.font().family(), 8));
+        for (int i = 0; i < ticks; ++i) {
+            const float t = (ticks > 1) ? (static_cast<float>(i) / static_cast<float>(ticks - 1)) : 0.0f;
+            const float x = t * static_cast<float>(w - 1);
+            const float ms = durationSec * 1000.0f * t;
+            painter.drawLine(QPointF(x, h - 2), QPointF(x, h - 8));
+            painter.drawText(QPointF(x + 2.0f, h - 10.0f), QString::number(static_cast<int>(ms)) + QStringLiteral(" ms"));
+        }
+    }
 }
 
 void ScopeWidget::pollCapture()

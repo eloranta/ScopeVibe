@@ -24,10 +24,12 @@ public:
     ~ScopeWidget() override;
 
     QStringList deviceNames() const;
+    QStringList outputDeviceNames() const;
     void setDeviceIndex(int index);
     void setChannelMode(ChannelMode mode);
     void setTimeScaleMs(int ms);
     void setGain(float gain);
+    void setOutputDeviceIndex(int index);
 
     bool startCapture();
     void stopCapture();
@@ -52,20 +54,30 @@ private:
 
     static BOOL CALLBACK enumDevicesCallback(LPGUID guid, LPCSTR description, LPCSTR module, LPVOID context);
     void refreshDevices();
+    void refreshOutputDevices();
     bool initCapture();
+    bool initPlayback();
     void releaseCapture();
+    void releasePlayback();
     bool tryFormat(int sampleRate, int channels, int bitsPerSample);
     void appendSamples(const QVector<float> &samples);
+    void outputSamples(const QVector<float> &samples);
 
     QVector<DeviceInfo> m_devices;
     int m_deviceIndex = 0;
+    QVector<DeviceInfo> m_outputDevices;
+    int m_outputDeviceIndex = 0;
     ChannelMode m_channelMode = ChannelStereo;
 
     IDirectSoundCapture8 *m_capture = nullptr;
     IDirectSoundCaptureBuffer8 *m_buffer = nullptr;
+    IDirectSound8 *m_play = nullptr;
+    IDirectSoundBuffer *m_playBuffer = nullptr;
     WAVEFORMATEX m_format{};
     DWORD m_bufferBytes = 0;
     DWORD m_readPos = 0;
+    DWORD m_playBufferBytes = 0;
+    DWORD m_playWritePos = 0;
 
     QTimer m_timer;
     QVector<float> m_wave;

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 namespace {
 QVector<float> toSamples(const void *data, DWORD bytes, const WAVEFORMATEX &format, ScopeWidget::ChannelMode mode)
@@ -67,6 +68,7 @@ ScopeWidget::ScopeWidget(QWidget *parent)
     : QWidget(parent)
 {
     refreshDevices();
+    refreshOutputDevices();
     setMinimumHeight(240);
     setAutoFillBackground(false);
 
@@ -84,6 +86,15 @@ QStringList ScopeWidget::deviceNames() const
 {
     QStringList names;
     for (const auto &device : m_devices) {
+        names.push_back(device.name);
+    }
+    return names;
+}
+
+QStringList ScopeWidget::outputDeviceNames() const
+{
+    QStringList names;
+    for (const auto &device : m_outputDevices) {
         names.push_back(device.name);
     }
     return names;
@@ -122,6 +133,20 @@ void ScopeWidget::setGain(float gain)
     update();
 }
 
+void ScopeWidget::setOutputDeviceIndex(int index)
+{
+    if (index < 0 || index >= m_outputDevices.size()) {
+        return;
+    }
+    if (m_outputDeviceIndex == index) {
+        return;
+    }
+    m_outputDeviceIndex = index;
+    if (isCapturing()) {
+        initPlayback();
+    }
+}
+
 bool ScopeWidget::startCapture()
 {
     stopCapture();
@@ -129,11 +154,13 @@ bool ScopeWidget::startCapture()
         emit statusChanged(QStringLiteral("Capture init failed"));
         return false;
     }
+    initPlayback();
 
     HRESULT hr = m_buffer->Start(DSCBSTART_LOOPING);
     if (FAILED(hr)) {
         emit statusChanged(QStringLiteral("Capture start failed"));
         releaseCapture();
+        releasePlayback();
         return false;
     }
 
@@ -149,6 +176,9 @@ void ScopeWidget::stopCapture()
     }
     if (m_buffer) {
         m_buffer->Stop();
+    }
+    if (m_playBuffer) {
+        m_playBuffer->Stop();
     }
     m_wave.clear();
     update();
@@ -270,6 +300,7 @@ void ScopeWidget::pollCapture()
 
     if (!samples.isEmpty()) {
         appendSamples(samples);
+        outputSamples(samples);
         update();
         emit frameReady(samples, static_cast<int>(m_format.nSamplesPerSec));
     }
@@ -289,6 +320,20 @@ void ScopeWidget::refreshDevices()
         m_devices.push_back(fallback);
     }
     m_deviceIndex = 0;
+}
+
+void ScopeWidget::refreshOutputDevices()
+{
+    m_outputDevices.clear();
+    DirectSoundEnumerateA(enumDevicesCallback, &m_outputDevices);
+
+    if (m_outputDevices.isEmpty()) {
+        DeviceInfo fallback;
+        fallback.name = QStringLiteral("Default output");
+        fallback.hasGuid = false;
+        m_outputDevices.push_back(fallback);
+    }
+    m_outputDeviceIndex = 0;
 }
 
 bool ScopeWidget::initCapture()
@@ -320,6 +365,65 @@ bool ScopeWidget::initCapture()
     return false;
 }
 
+bool ScopeWidget::initPlayback()
+{
+    releasePlayback();
+    if (m_outputDevices.isEmpty()) {
+        refreshOutputDevices();
+    }
+
+    const DeviceInfo &device = m_outputDevices.value(m_outputDeviceIndex);
+    HRESULT hr = DirectSoundCreate8(device.hasGuid ? &device.guid : nullptr, &m_play, nullptr);
+    if (FAILED(hr) || !m_play) {
+        emit statusChanged(QStringLiteral("Playback init failed"));
+        return false;
+    }
+
+    const HWND hwnd = reinterpret_cast<HWND>(winId());
+    hr = m_play->SetCooperativeLevel(hwnd, DSSCL_PRIORITY);
+    if (FAILED(hr)) {
+        emit statusChanged(QStringLiteral("Playback coop level failed"));
+        releasePlayback();
+        return false;
+    }
+
+    DSBUFFERDESC desc{};
+    desc.dwSize = sizeof(desc);
+    desc.dwFlags = DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLPOSITIONNOTIFY;
+    desc.dwBufferBytes = m_format.nAvgBytesPerSec * 2;
+    desc.dwBufferBytes = (desc.dwBufferBytes / m_format.nBlockAlign) * m_format.nBlockAlign;
+    desc.lpwfxFormat = &m_format;
+
+    IDirectSoundBuffer *buffer = nullptr;
+    hr = m_play->CreateSoundBuffer(&desc, &buffer, nullptr);
+    if (FAILED(hr) || !buffer) {
+        emit statusChanged(QStringLiteral("Playback buffer failed"));
+        releasePlayback();
+        return false;
+    }
+
+    m_playBuffer = buffer;
+    m_playBufferBytes = desc.dwBufferBytes;
+    m_playWritePos = 0;
+
+    void *ptr1 = nullptr;
+    void *ptr2 = nullptr;
+    DWORD bytes1 = 0;
+    DWORD bytes2 = 0;
+    if (SUCCEEDED(m_playBuffer->Lock(0, m_playBufferBytes, &ptr1, &bytes1, &ptr2, &bytes2, 0))) {
+        if (ptr1 && bytes1) {
+            std::memset(ptr1, 0, bytes1);
+        }
+        if (ptr2 && bytes2) {
+            std::memset(ptr2, 0, bytes2);
+        }
+        m_playBuffer->Unlock(ptr1, bytes1, ptr2, bytes2);
+    }
+
+    m_playBuffer->Play(0, 0, DSBPLAY_LOOPING);
+    return true;
+}
+
 void ScopeWidget::releaseCapture()
 {
     if (m_buffer) {
@@ -332,6 +436,20 @@ void ScopeWidget::releaseCapture()
     }
     m_bufferBytes = 0;
     m_readPos = 0;
+}
+
+void ScopeWidget::releasePlayback()
+{
+    if (m_playBuffer) {
+        m_playBuffer->Release();
+        m_playBuffer = nullptr;
+    }
+    if (m_play) {
+        m_play->Release();
+        m_play = nullptr;
+    }
+    m_playBufferBytes = 0;
+    m_playWritePos = 0;
 }
 
 bool ScopeWidget::tryFormat(int sampleRate, int channels, int bitsPerSample)
@@ -397,4 +515,53 @@ void ScopeWidget::appendSamples(const QVector<float> &samples)
         m_wave.remove(0, overflow);
     }
     m_wave += absSamples;
+}
+
+void ScopeWidget::outputSamples(const QVector<float> &samples)
+{
+    if (!m_playBuffer || m_format.wBitsPerSample != 16) {
+        return;
+    }
+
+    QVector<int16_t> pcm;
+    pcm.resize(samples.size() * m_format.nChannels);
+
+    for (int i = 0; i < samples.size(); ++i) {
+        float value = samples[i];
+        value = std::max(-1.0f, std::min(1.0f, value));
+        const int16_t s = static_cast<int16_t>(value * 32767.0f);
+        if (m_format.nChannels == 1) {
+            pcm[i] = s;
+        } else {
+            const int idx = i * m_format.nChannels;
+            pcm[idx] = s;
+            pcm[idx + 1] = s;
+        }
+    }
+
+    const DWORD bytesToWrite = static_cast<DWORD>(pcm.size() * sizeof(int16_t));
+    const DWORD alignedBytes = (bytesToWrite / m_format.nBlockAlign) * m_format.nBlockAlign;
+    if (alignedBytes == 0) {
+        return;
+    }
+
+    void *ptr1 = nullptr;
+    void *ptr2 = nullptr;
+    DWORD bytes1 = 0;
+    DWORD bytes2 = 0;
+    HRESULT hr = m_playBuffer->Lock(m_playWritePos, alignedBytes, &ptr1, &bytes1, &ptr2, &bytes2, 0);
+    if (FAILED(hr)) {
+        return;
+    }
+
+    const uint8_t *src = reinterpret_cast<const uint8_t *>(pcm.constData());
+    if (ptr1 && bytes1) {
+        std::memcpy(ptr1, src, bytes1);
+    }
+    if (ptr2 && bytes2) {
+        std::memcpy(ptr2, src + bytes1, bytes2);
+    }
+    m_playBuffer->Unlock(ptr1, bytes1, ptr2, bytes2);
+
+    m_playWritePos = (m_playWritePos + alignedBytes) % m_playBufferBytes;
 }

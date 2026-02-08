@@ -28,6 +28,16 @@
        <widget class="QComboBox" name="sourceCombo"/>
       </item>
       <item>
+       <widget class="QLabel" name="outputLabel">
+        <property name="text">
+         <string>Output</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="outputCombo"/>
+      </item>
+      <item>
        <widget class="QLabel" name="channelLabel">
         <property name="text">
          <string>Channel</string>

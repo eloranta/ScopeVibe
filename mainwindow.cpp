@@ -15,12 +15,19 @@ MainWindow::MainWindow(QWidget *parent)
     const QStringList sources = ui->scopeWidget->deviceNames();
     ui->sourceCombo->addItems(sources);
 
+    const QStringList outputs = ui->scopeWidget->outputDeviceNames();
+    ui->outputCombo->addItems(outputs);
+
     ui->channelCombo->addItem(QStringLiteral("Stereo"), ScopeWidget::ChannelStereo);
     ui->channelCombo->addItem(QStringLiteral("Left"), ScopeWidget::ChannelLeft);
     ui->channelCombo->addItem(QStringLiteral("Right"), ScopeWidget::ChannelRight);
 
     connect(ui->sourceCombo, &QComboBox::currentIndexChanged, this, [this](int index) {
         ui->scopeWidget->setDeviceIndex(index);
+    });
+
+    connect(ui->outputCombo, &QComboBox::currentIndexChanged, this, [this](int index) {
+        ui->scopeWidget->setOutputDeviceIndex(index);
     });
 
     connect(ui->channelCombo, &QComboBox::currentIndexChanged, this, [this](int index) {

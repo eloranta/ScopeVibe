@@ -54,6 +54,9 @@ MainWindow::MainWindow(QWidget *parent)
         statusBar()->showMessage(QStringLiteral("No capture devices found"));
     } else {
         statusBar()->showMessage(QStringLiteral("Ready"));
+        if (ui->scopeWidget->startCapture()) {
+            ui->startButton->setText(QStringLiteral("Stop"));
+        }
     }
 }
 

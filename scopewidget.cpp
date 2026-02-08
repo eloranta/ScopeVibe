@@ -174,7 +174,7 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
     }
 
     const float peak = 1.0f;
-    const float yScale = (static_cast<float>(h) * 0.45f) / peak;
+    const float yScale = (static_cast<float>(h) * 0.45f * 10.0f) / peak;
 
     QVector<QPointF> points;
     points.reserve(m_wave.size());

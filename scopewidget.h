@@ -27,6 +27,7 @@ public:
     void setDeviceIndex(int index);
     void setChannelMode(ChannelMode mode);
     void setTimeScaleMs(int ms);
+    void setGain(float gain);
 
     bool startCapture();
     void stopCapture();
@@ -70,6 +71,7 @@ private:
     QVector<float> m_wave;
     int m_maxSamples = 2048;
     float m_displayPeak = 0.05f;
+    float m_gain = 10.0f;
     float m_envState = 0.0f;
     float m_envDecay = 1.0f;
     int m_envSampleRate = 0;

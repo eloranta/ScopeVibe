@@ -67,6 +67,32 @@
        </widget>
       </item>
       <item>
+       <widget class="QLabel" name="gainLabel">
+        <property name="text">
+         <string>Gain</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="gainSpin">
+        <property name="minimum">
+         <double>0.1</double>
+        </property>
+        <property name="maximum">
+         <double>100.0</double>
+        </property>
+        <property name="singleStep">
+         <double>0.5</double>
+        </property>
+        <property name="value">
+         <double>10.0</double>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="controlsSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

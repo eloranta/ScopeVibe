@@ -32,6 +32,10 @@ MainWindow::MainWindow(QWidget *parent)
         ui->scopeWidget->setTimeScaleMs(value);
     });
 
+    connect(ui->gainSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value) {
+        ui->scopeWidget->setGain(static_cast<float>(value));
+    });
+
     connect(ui->startButton, &QPushButton::clicked, this, [this]() {
         if (ui->scopeWidget->isCapturing()) {
             ui->scopeWidget->stopCapture();

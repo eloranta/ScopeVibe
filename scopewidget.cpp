@@ -116,6 +116,12 @@ void ScopeWidget::setTimeScaleMs(int ms)
     update();
 }
 
+void ScopeWidget::setGain(float gain)
+{
+    m_gain = std::max(0.1f, gain);
+    update();
+}
+
 bool ScopeWidget::startCapture()
 {
     stopCapture();
@@ -174,7 +180,7 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
     }
 
     const float peak = 1.0f;
-    const float yScale = (static_cast<float>(h) * 0.45f * 10.0f) / peak;
+    const float yScale = (static_cast<float>(h) * 0.45f * m_gain) / peak;
 
     QVector<QPointF> points;
     points.reserve(m_wave.size());

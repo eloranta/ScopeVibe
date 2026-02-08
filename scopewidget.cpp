@@ -110,6 +110,12 @@ void ScopeWidget::setChannelMode(ChannelMode mode)
     update();
 }
 
+void ScopeWidget::setTimeScaleMs(int ms)
+{
+    m_timeScaleMs = std::max(0, ms);
+    update();
+}
+
 bool ScopeWidget::startCapture()
 {
     stopCapture();
@@ -183,7 +189,9 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
     painter.drawPolyline(points.constData(), points.size());
 
     if (m_format.nSamplesPerSec > 0) {
-        const float durationSec = static_cast<float>(m_wave.size()) / static_cast<float>(m_format.nSamplesPerSec);
+        const float durationSec = (m_timeScaleMs > 0)
+            ? static_cast<float>(m_timeScaleMs) / 1000.0f
+            : static_cast<float>(m_wave.size()) / static_cast<float>(m_format.nSamplesPerSec);
         const int ticks = 5;
         painter.setPen(QPen(QColor(150, 150, 170), 1.0));
         painter.setFont(QFont(painter.font().family(), 8));

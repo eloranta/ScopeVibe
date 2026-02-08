@@ -38,6 +38,35 @@
        <widget class="QComboBox" name="channelCombo"/>
       </item>
       <item>
+       <widget class="QLabel" name="timeLabel">
+        <property name="text">
+         <string>Time (ms)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="timeScaleSpin">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>2000</number>
+        </property>
+        <property name="singleStep">
+         <number>50</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+        <property name="suffix">
+         <string> ms</string>
+        </property>
+        <property name="toolTip">
+         <string>0 = auto</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="controlsSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

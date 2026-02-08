@@ -28,6 +28,10 @@ MainWindow::MainWindow(QWidget *parent)
         ui->scopeWidget->setChannelMode(static_cast<ScopeWidget::ChannelMode>(mode));
     });
 
+    connect(ui->timeScaleSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int value) {
+        ui->scopeWidget->setTimeScaleMs(value);
+    });
+
     connect(ui->startButton, &QPushButton::clicked, this, [this]() {
         if (ui->scopeWidget->isCapturing()) {
             ui->scopeWidget->stopCapture();

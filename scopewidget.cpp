@@ -242,7 +242,7 @@ void ScopeWidget::pollCapture()
     if (!samples.isEmpty()) {
         appendSamples(samples);
         update();
-        emit frameReady(samples);
+        emit frameReady(samples, static_cast<int>(m_format.nSamplesPerSec));
     }
 
     m_readPos = (m_readPos + toRead) % m_bufferBytes;

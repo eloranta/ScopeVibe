@@ -33,7 +33,7 @@ public:
 
 signals:
     void statusChanged(const QString &text);
-    void frameReady(const QVector<float> &samples);
+    void frameReady(const QVector<float> &samples, int sampleRate);
 
 protected:
     void paintEvent(QPaintEvent *event) override;

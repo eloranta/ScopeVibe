@@ -11,7 +11,7 @@ public:
     explicit SpectrumWidget(QWidget *parent = nullptr);
 
 public slots:
-    void setSamples(const QVector<float> &samples);
+    void setSamples(const QVector<float> &samples, int sampleRate);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -22,4 +22,5 @@ private:
 
     QVector<float> m_samples;
     QVector<float> m_bins;
+    int m_sampleRate = 0;
 };

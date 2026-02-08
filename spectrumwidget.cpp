@@ -6,6 +6,16 @@
 #include <cmath>
 #include <complex>
 
+namespace {
+QString formatFrequency(float hz)
+{
+    if (hz >= 1000.0f) {
+        return QString::number(hz / 1000.0f, 'f', 1) + QStringLiteral("k");
+    }
+    return QString::number(static_cast<int>(hz));
+}
+} // namespace
+
 SpectrumWidget::SpectrumWidget(QWidget *parent)
     : QWidget(parent)
 {
@@ -13,9 +23,10 @@ SpectrumWidget::SpectrumWidget(QWidget *parent)
     setAutoFillBackground(false);
 }
 
-void SpectrumWidget::setSamples(const QVector<float> &samples)
+void SpectrumWidget::setSamples(const QVector<float> &samples, int sampleRate)
 {
     m_samples = samples;
+    m_sampleRate = sampleRate;
     computeSpectrum();
     update();
 }
@@ -43,7 +54,7 @@ void SpectrumWidget::paintEvent(QPaintEvent *event)
     const float scale = (maxValue > 0.0f) ? (static_cast<float>(h - 6) / maxValue) : 1.0f;
 
     const int count = m_bins.size();
-    const float spectrumWidth = static_cast<float>(w) * 4.0f;
+    const float spectrumWidth = static_cast<float>(w) * 0.125f;
     painter.setPen(QPen(QColor(0, 140, 220), 1.2));
 
     for (int i = 0; i < count; ++i) {
@@ -54,6 +65,20 @@ void SpectrumWidget::paintEvent(QPaintEvent *event)
             : 0.0f;
         const float y = static_cast<float>(h - 2) - magnitude * scale;
         painter.drawLine(QPointF(x, h - 2), QPointF(x, y));
+    }
+
+    if (m_sampleRate > 0) {
+        const float nyquist = static_cast<float>(m_sampleRate) * 0.5f;
+        const int ticks = 3;
+        painter.setPen(QPen(QColor(150, 150, 170), 1.0));
+        painter.setFont(QFont(painter.font().family(), 8));
+        for (int i = 0; i < ticks; ++i) {
+            const float t = (ticks > 1) ? (static_cast<float>(i) / static_cast<float>(ticks - 1)) : 0.0f;
+            const float x = t * std::max(1.0f, spectrumWidth - 1.0f);
+            const float freq = t * nyquist;
+            painter.drawLine(QPointF(x, h - 2), QPointF(x, h - 8));
+            painter.drawText(QPointF(x + 2.0f, h - 10.0f), formatFrequency(freq));
+        }
     }
 }
 

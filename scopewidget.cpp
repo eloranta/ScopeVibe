@@ -173,7 +173,7 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
         return;
     }
 
-    const float peak = std::max(0.02f, m_displayPeak);
+    const float peak = 1.0f;
     const float yScale = (static_cast<float>(h) * 0.45f) / peak;
 
     QVector<QPointF> points;

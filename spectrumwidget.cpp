@@ -54,7 +54,7 @@ void SpectrumWidget::paintEvent(QPaintEvent *event)
     const float scale = (maxValue > 0.0f) ? (static_cast<float>(h - 6) / maxValue) : 1.0f;
 
     const int count = m_bins.size();
-    const float spectrumWidth = static_cast<float>(w) * 0.125f;
+    const float spectrumWidth = static_cast<float>(w);
     painter.setPen(QPen(QColor(0, 140, 220), 1.2));
 
     for (int i = 0; i < count; ++i) {
@@ -69,7 +69,7 @@ void SpectrumWidget::paintEvent(QPaintEvent *event)
 
     if (m_sampleRate > 0) {
         const float nyquist = static_cast<float>(m_sampleRate) * 0.5f;
-        const int ticks = 3;
+        const int ticks = 5;
         painter.setPen(QPen(QColor(150, 150, 170), 1.0));
         painter.setFont(QFont(painter.font().family(), 8));
         for (int i = 0; i < ticks; ++i) {

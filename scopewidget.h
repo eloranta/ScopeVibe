@@ -72,8 +72,5 @@ private:
     int m_maxSamples = 2048;
     float m_displayPeak = 0.05f;
     float m_gain = 10.0f;
-    float m_envState = 0.0f;
-    float m_envDecay = 1.0f;
-    int m_envSampleRate = 0;
     int m_timeScaleMs = 0;
 };

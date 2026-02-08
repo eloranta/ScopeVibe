@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
         statusBar()->showMessage(text);
     });
 
-    connect(ui->scopeWidget, &ScopeWidget::frameReady, ui->spectrumWidget, &SpectrumWidget::setSamples);
+    ui->spectrumWidget->show();
 
     if (sources.isEmpty()) {
         ui->startButton->setEnabled(false);

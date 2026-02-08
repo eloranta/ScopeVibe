@@ -168,7 +168,7 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
 
     const int w = width();
     const int h = height();
-    const int midY = h / 2;
+    const int midY = h;
 
     painter.setPen(QPen(QColor(40, 40, 60)));
     painter.drawLine(0, midY, w, midY);

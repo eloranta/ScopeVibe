@@ -43,7 +43,7 @@ void SpectrumWidget::paintEvent(QPaintEvent *event)
     const float scale = (maxValue > 0.0f) ? (static_cast<float>(h - 6) / maxValue) : 1.0f;
 
     const int count = m_bins.size();
-    const float spectrumWidth = static_cast<float>(w) * 0.125f;
+    const float spectrumWidth = static_cast<float>(w) * 4.0f;
     painter.setPen(QPen(QColor(0, 140, 220), 1.2));
 
     for (int i = 0; i < count; ++i) {
